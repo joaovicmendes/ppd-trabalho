@@ -49,54 +49,54 @@ int _samples = 0;
 int
 main(int argc, char **argv) 
 { 
-	int i;
-	double x, y;
-	unsigned short xi[3];
+    int i;
+    double x, y;
+    unsigned short xi[3];
 
-	// pthread_t threads[MAX_THREADS]; 
-	// int hits[MAX_THREADS];
-	int total_hits = 0;
+    // pthread_t threads[MAX_THREADS]; 
+    // int hits[MAX_THREADS];
+    int total_hits = 0;
 
-	if(argc>1) {
-		_num_threads=atoi(argv[1]);
-		if(_num_threads < 0 || _num_threads > MAX_THREADS) {
-			printf("Erro: max %d threads\n", MAX_THREADS);
-			return(EXIT_FAILURE);
-		}
-	}else
-		_num_threads = MAX_THREADS;
-	if(argc>2)
-		_samples = atoi(argv[2]);
-	
-	if(_samples <= 0 || _samples > INT_MAX)
-		_samples = SAMPLES;
+    if(argc>1) {
+        _num_threads=atoi(argv[1]);
+        if(_num_threads < 0 || _num_threads > MAX_THREADS) {
+            printf("Erro: max %d threads\n", MAX_THREADS);
+            return(EXIT_FAILURE);
+        }
+    }else
+        _num_threads = MAX_THREADS;
+    if(argc>2)
+        _samples = atoi(argv[2]);
+    
+    if(_samples <= 0 || _samples > INT_MAX)
+        _samples = SAMPLES;
 
- 	// double erand48(unsigned short xsubi[3]);
-	// nd48() and erand48() functions return non-negative double-precision floating-point 
-	// values uniformly distributed between [0.0, 1.0).
- 	// The functions erand48(), nrand48() and jrand48() require the calling program to
-	// provide storage for the successive Xi values in the array argument xsubi.  
-	// The functions are initialized by placing the initial value of Xi into the array 
-	// before calling the function for the first time.
+     // double erand48(unsigned short xsubi[3]);
+    // nd48() and erand48() functions return non-negative double-precision floating-point 
+    // values uniformly distributed between [0.0, 1.0).
+     // The functions erand48(), nrand48() and jrand48() require the calling program to
+    // provide storage for the successive Xi values in the array argument xsubi.  
+    // The functions are initialized by placing the initial value of Xi into the array 
+    // before calling the function for the first time.
 
-	// xi[0]=0.5; xi[1]=0.5; xi[2]=ind;
+    // xi[0]=0.5; xi[1]=0.5; xi[2]=ind;
 
-	// Este é o cálculo, feito de maneira sequencial. Como dividi-lo entre várias threads?
-	// Cada thread calcula _samples / _num_threads amostras?
-	// Como tratar o total de "hits" individual de cada thread e somá-los ao final?
+    // Este é o cálculo, feito de maneira sequencial. Como dividi-lo entre várias threads?
+    // Cada thread calcula _samples / _num_threads amostras?
+    // Como tratar o total de "hits" individual de cada thread e somá-los ao final?
 
-	for (i=0; i< _samples; i++) {
-		x=erand48(xi);
-		y=erand48(xi);
-		if(x*x+y*y <= 1.0)
-			total_hits++;
-	}	
+    for (i=0; i< _samples; i++) {
+        x=erand48(xi);
+        y=erand48(xi);
+        if(x*x+y*y <= 1.0)
+            total_hits++;
+    }	
 
- 	// pi = 4 * pontos_no_circulo/total
+     // pi = 4 * pontos_no_circulo/total
 
-	printf("Pi: %.16f\n",(float)4 * (float)total_hits / (float)_samples /* * _num_threads */);
+    printf("Pi: %.16f\n",(float)4 * (float)total_hits / (float)_samples /* * _num_threads */);
 
-	return(0);
+    return(0);
 } 
 
 
