@@ -99,11 +99,6 @@ void play (cell_t *board, cell_t *newboard, int size, int start, int end)
 			if (n == 3) newboard [i*size+j] = 1;
 			if (n < 2) newboard [i*size+j] = 0;
 			if (n > 3) newboard [i*size+j] = 0; 
-#ifdef DEBUG
-			// ajusta imagem da célula na tla
-			printf( newboard[i*size+j] ? "\033[%d;%df\033[07m  " : "\033[%d;%df\033[m  ", i+1, 2*j+1);
-			fflush(stdout);
-#endif
 		}
 }
 
@@ -176,17 +171,17 @@ void * thread_play(void * arg)
 	for (int i = 0; i < steps; i++) {
 		play (prev, next, size, start, end);
 
-#ifdef DEBUG
-		// Descomente aqui e comente em "play" para exibir 
-		// show(next,size);
-		usleep(150000);
-#endif
 		// Essa estratégia gera um potencial overhead?
 		int result = pthread_barrier_wait(&_barrier);
 		if (result == PTHREAD_BARRIER_SERIAL_THREAD) {
 			cell_t *tmp = next;
 			next = prev;
-			prev = tmp;
+			prev = tmp; 
+
+#ifdef DEBUG
+			show(next,size);
+			usleep(150000);
+#endif
 		}
 
 		pthread_barrier_wait(&_barrier);
