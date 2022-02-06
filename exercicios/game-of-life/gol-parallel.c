@@ -165,8 +165,8 @@ void * thread_play(void * arg)
 	cell_t *prev = ( (th_arg *)arg )->prev;
 	cell_t *next = ( (th_arg *)arg )->next;
 
-	int start = 0;
-	int end = size;
+	int start = (size/NUM_THREADS) * id;
+	int end = (size/NUM_THREADS) * (id+1);
 
 	for (int i = 0; i < steps; i++) {
 		play (prev, next, size, start, end);
