@@ -50,17 +50,13 @@ typedef unsigned char cell_t;
 	#define PTHREAD_BARRIER_SERIAL_THREAD -1
 #endif
 
-#define NUM_THREADS 4
+#define NUM_THREADS 2
 
 pthread_t threads[NUM_THREADS];
 
-typedef struct th_arg {
-	int steps;
-	int size;
-	int id;
-	cell_t *prev;
-	cell_t *next;
-} th_arg;
+int size, steps;
+cell_t * prev;
+cell_t * next;
 
 pthread_barrier_t _barrier;
 
@@ -157,16 +153,13 @@ int le_int()
 	return atoi(digit);
 }
 
-void * thread_play(void * arg)
+void * thread_play(void * thread_id)
 {
-	int steps = ( (th_arg *)arg )->steps;
-	int size = ( (th_arg *)arg )->size;
-	int id = ( (th_arg *)arg )->id;
-	cell_t *prev = ( (th_arg *)arg )->prev;
-	cell_t *next = ( (th_arg *)arg )->next;
-
+	int id = (int)thread_id;
 	int start = (size/NUM_THREADS) * id;
 	int end = (size/NUM_THREADS) * (id+1);
+	if (id == NUM_THREADS-1)
+		end = size;
 
 	for (int i = 0; i < steps; i++) {
 		play (prev, next, size, start, end);
@@ -183,7 +176,6 @@ void * thread_play(void * arg)
 			usleep(150000);
 #endif
 		}
-
 		pthread_barrier_wait(&_barrier);
 	}
 
@@ -192,8 +184,6 @@ void * thread_play(void * arg)
 
 int main () 
 {
-	th_arg th_args;
-	int size, steps;
 	int i,j;
 
 	size = le_int();
@@ -201,8 +191,8 @@ int main ()
 
 	// printf("size: %d  steps: %d\n", size, steps);
 
-	cell_t * prev = (cell_t *) malloc ( size * size * sizeof(cell_t) );
-	cell_t * next = (cell_t *) malloc ( size * size * sizeof(cell_t) );
+	prev = (cell_t *) malloc ( size * size * sizeof(cell_t) );
+	next = (cell_t *) malloc ( size * size * sizeof(cell_t) );
 
 // ([des]comente) para ler dados de STDIN ou gerá-los aleatoriamente
 #define READ_FILE
@@ -229,13 +219,8 @@ int main ()
 
 	pthread_barrier_init(&_barrier, NULL, NUM_THREADS);
 	// Criação das threads
-	th_args.size = size;
-	th_args.steps = steps;
-	th_args.prev = prev;
-	th_args.next = next;
 	for(int t = 0; t < NUM_THREADS; t++){
-		th_args.id = t;
-		int status = pthread_create(&threads[t], NULL, thread_play, (void *)&th_args);
+		int status = pthread_create(&threads[t], NULL, thread_play, (void *)t);
 		if (status) {
 			printf("Falha da criacao da thread %d (%d)\n", t, status);
 			exit(EXIT_FAILURE);
@@ -248,7 +233,7 @@ int main ()
 	}
 
 #ifdef DEBUG
-	// show(prev,size);
+	show(prev,size);
 #endif
 
 	pthread_barrier_destroy(&_barrier);
