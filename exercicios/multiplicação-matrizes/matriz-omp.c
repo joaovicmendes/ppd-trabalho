@@ -48,10 +48,10 @@ int main(int argc, char *argv[])
         // Qual/quais loop(s) paralelizar? Vale a pena paralelizar todos?
         // Qual é o efeito de fazer um parallel for em cada um dos fors abaixo?
         // É necessários sincronizar alguma operação, garantindo exclusão mútua?
-// why is it slower??
+
 #pragma omp parallel
 {
-#pragma omp for
+#pragma omp for private(j, k)
     for (i = 0; i < lin_c; i++)
         for (j = 0; j < col_c; j++)
         {
