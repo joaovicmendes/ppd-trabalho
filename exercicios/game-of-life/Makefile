@@ -17,7 +17,7 @@ CC=gcc
 
 FLAGS=-O3
 
-all: life gol gol-parallel
+all: life gol gol-parallel go-omp
 
 life: life.c
 	@echo Compiling for $(UNAME)
@@ -31,6 +31,10 @@ gol-parallel: gol-parallel.c
 	@echo Compiling for $(UNAME)
 	$(CC) $(FLAGS) gol-parallel.c -o gol-parallel -pthread $(CFLAGS) $(LFLAGS)
 
+gol-omp: gol-omp.c
+	@echo Compiling for $(UNAME)
+	$(CC) $(FLAGS) gol-omp.c -o gol-omp $(CFLAGS) $(LFLAGS)
+
 clean:
-	rm -f life gol gol-parallel
+	rm -f life gol gol-parallel gol-omp
 
