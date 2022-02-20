@@ -15,7 +15,7 @@ Resultados em uma máquina com 4 cores físicos e 8 virtuais (HTT).
 
 Program | Threads | Time |
 --------|---------|------|
-mm-base| 1|XXXX real|
-mm-vec| 1|XXXX real|
-mm-omp| 8|XXXX real|
-mm-omp-vec| 8|XXXX real|
+mm-base| 1|3.09 real|
+mm-vec| 1|1.09 real|
+mm-omp| 8|3.08 real|
+mm-omp-vec| 8|1.08 real|
