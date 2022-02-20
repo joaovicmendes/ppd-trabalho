@@ -1,34 +1,35 @@
 UNAME := $(shell uname)
 
 ifeq ($(UNAME), Darwin)
-	CFLAGS=-Xpreprocessor -fopenmp 
-	LFLAGS=-lomp
+	OMP_FLAGS=-Xpreprocessor -fopenmp -lomp
+	VEC_FLAGS=-O3
 else
-	CFLAGS=-fopenmp 
-	LFLAGS=
+	OMP_FLAGS=-fopenmp
+	VEC_FLAGS=-O3 -fopt-info-optall-optimized -ftree-vectorize -fopt-info-vec-missed -fopt-info-vec-note
 endif
 
 CC=gcc
 
-DEBUG_FLAGS=-ftree-vectorize
+all: mm-base mm-vec mm-omp mm-omp-vec
 
-all: mm optimized omp omp-optimized
+mm-base: mm.c
+	$(CC) mm.c -o mm-base 
 
-mm: mm.c
-	@echo Compiling for $(UNAME)
-	$(CC) mm.c -o mm 
+mm-vec: mm.c
+	$(CC) mm.c -o mm-vec $(VEC_FLAGS)
 
-optimized: mm.c
-	@echo Compiling for $(UNAME)
-	$(CC) -O3 $(DEBUG_FLAGS) mm.c -o optimized 
+mm-omp: mm.c
+	$(CC) mm.c -o mm-omp $(OMP_FLAGS)
 
-omp: mm.c
-	@echo Compiling for $(UNAME)
-	$(CC) $(FLAGS) mm.c -o omp $(CFLAGS) $(LFLAGS)
-
-omp-optimized: mm.c
-	@echo Compiling for $(UNAME)
-	$(CC) $(FLAGS) $(DEBUG_FLAGS) mm.c -O3 -o omp-optimized $(CFLAGS) $(LFLAGS)
+mm-omp-vec: mm.c
+	$(CC) mm.c -o mm-omp-vec -O3 $(OMP_FLAGS) $(VEC_FLAGS)
 
 clean:
-	rm -f mm optimized omp omp-optimized
+	rm -f mm-base mm-vec mm-omp mm-omp-vec
+
+test:
+	make all
+	time ./mm-base
+	time ./mm-vec
+	time ./mm-omp
+	time ./mm-omp-vec

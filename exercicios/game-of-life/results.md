@@ -1,5 +1,5 @@
 # Results
-Resultados em uma máquina com dois 4 cores físicos e 8 virtuais (HTT), utilizando o caso de teste `judge.in`.
+Resultados em uma máquina com 4 cores físicos e 8 virtuais (HTT), utilizando o caso de teste `judge.in`.
 
 Program | Threads | Time |
 --------|---------|------|

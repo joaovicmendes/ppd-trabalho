@@ -1,5 +1,5 @@
 # Results
-Resultados em uma máquina com dois 2 cores físicos e 4 virtuais (HTT).
+Resultados em uma máquina com 2 cores físicos e 4 virtuais (HTT).
 
 ### Sample = 10.000.000
 
