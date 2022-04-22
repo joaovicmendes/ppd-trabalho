@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include "quicksort.c"
 
 // #define DEBUG
 
@@ -10,15 +11,10 @@
 #define MAXSTR 50
 #define MAXRESULTS 1000
 
-char firstHalf[MAXNUM][MAXSTR];
-char secondHalf[MAXNUM][MAXSTR];
-char strToTest[MAXSTR];
-long int result[MAXRESULTS];
-int numPrimes = 0;
-
+__device__
 int isprime(long int value)
 {
-    long int root = sqrtl(value);
+    long int root = sqrt((double)value);
     int prime = 1;
 
     if (value % 2 == 0)
@@ -32,46 +28,27 @@ int isprime(long int value)
     return prime;
 }
 
-void quicksort(long int *primes,int first,int last)
+__global__
+void gpu_check_primes(long int *primes, int k)
 {
-    int i, j, pivot;
-    long int temp;
-
-    if (first < last)
-    {
-        pivot = first;
-        i = first;
-        j = last;
-        while (i < j)
-        {
-            while (primes[i] <= primes[pivot] && i<last)
-                i++;
-            while(primes[j] > primes[pivot])
-                j--;
-
-            if (i < j)
-            {
-                temp = primes[i];
-                primes[i] = primes[j];
-                primes[j] = temp;
-            }
-        }
-
-        temp = primes[pivot];
-        primes[pivot] = primes[j];
-        primes[j] = temp;
-
-        quicksort(primes,first,j-1);
-        quicksort(primes,j+1,last);
-    }
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= k)
+      return;
+ 
+    long int primeToTest = primes[i];
+    primes[i] = isprime(primeToTest);
 }
-
 
 int main(int argc,char** argv)
 {
-    FILE *primesFile = stdin;
+    char firstHalf[MAXNUM][MAXSTR];
+    char secondHalf[MAXNUM][MAXSTR];
+    char strToTest[MAXSTR];
+    int numPrimes = 0;
     int numResults = 0;
     long int primeToTest;
+    long int *primes;
+    FILE *primesFile = stdin;
 
     // Leitura da entrada
     fscanf(primesFile, "%d\n", &numPrimes);
@@ -80,30 +57,31 @@ int main(int argc,char** argv)
 
     for (int i = 0; i < numPrimes; i++)
         fscanf(primesFile,"%s\n", secondHalf[i]);
-
     fclose(primesFile);
-
-    // Formando combinações e testando se são primos ou não
+    
+    // Definindo os números para serem testados
+    cudaMallocManaged(&primes, sizeof(long int) * numPrimes * numPrimes);
+    int k = 0;
     for (int i = 0; i < numPrimes; i++)
         for (int j = 0; j < numPrimes; j++)
         {
             strcpy(strToTest, firstHalf[i]);
             strcat(strToTest, secondHalf[j]);
             primeToTest = atol(strToTest);
-            if (isprime(primeToTest)) {
-                result[numResults] = primeToTest;
-                numResults++;
-            }
+            primes[k++] = primeToTest;
         }
-    
-#ifdef DEBUG
-    // Ordenando resultado e imprimindo
-    quicksort(result,0,numResults-1);
-    for (int i = 0; i < numResults; i++)
-        printf("%ld\n",result[i]);
-#else
-    printf("%d\n", numResults);
-#endif
+
+    // Chamada do kernel
+    gpu_check_primes<<<1, k>>>(primes, k);
+    cudaDeviceSynchronize();
  
+    for (int i = 0; i < k; i++)
+      numResults += primes[i];
+ 
+    cudaFree(primes);
+    cudaDeviceReset();
+
+    printf("%d\n", numResults);
+
     return 0;
 }
