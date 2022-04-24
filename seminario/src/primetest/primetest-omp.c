@@ -19,17 +19,15 @@ int numPrimes = 0;
 
 int isprime(long int value)
 {
-    long int root = sqrtl(value);
-    int prime = 1;
-
-    if (value % 2 == 0)
-        return 0;
-
-    for (int factor = 3; factor <= root; factor += 2) {
-        int isPrime = fmod((double)value, (double) factor) > 0.0;
-        prime = prime ? isPrime : prime;
+    long int root;
+    long int factor=2;
+    int prime=1;
+    root = sqrtl(value);
+    while ((factor<=root) && (prime))
+    {
+        prime = fmod((double)value, (double) factor) > 0.0;
+        factor++;
     }
-
     return prime;
 }
 

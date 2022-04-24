@@ -1,4 +1,3 @@
-%%writefile primetest.cu
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -10,22 +9,22 @@
 #define MAXNUM 100
 #define MAXSTR 50
 #define MAXRESULTS 1000
+#define MAXTHREADS 512
 
 __device__
 int isprime(long int value)
 {
+    int isPrime = 1;
     long int root = sqrt((double)value);
-    int prime = 1;
 
     if (value % 2 == 0)
-        return 0;
+        return (value == 2);
 
-    for (int factor = 3; factor <= root; factor += 2) {
-        int isPrime = fmod((double)value, (double) factor) > 0.0;
-        prime = prime ? isPrime : prime;
+    for (int factor = 3; factor<=root && isPrime; factor += 2) {
+        isPrime = fmod((double)value, (double) factor) > 0.0;
     }
 
-    return prime;
+    return isPrime;
 }
 
 __global__
@@ -46,8 +45,10 @@ int main(int argc,char** argv)
     char strToTest[MAXSTR];
     int numPrimes = 0;
     int numResults = 0;
+    long int memSize = 0;
     long int primeToTest;
-    long int *primes;
+    long int *h_primes;
+    long int *d_primes;
     FILE *primesFile = stdin;
 
     // Leitura da entrada
@@ -60,7 +61,10 @@ int main(int argc,char** argv)
     fclose(primesFile);
     
     // Definindo os números para serem testados
-    cudaMallocManaged(&primes, sizeof(long int) * numPrimes * numPrimes);
+    memSize = sizeof(long int) * numPrimes * numPrimes;
+    h_primes = (long int*) malloc(memSize);
+    cudaMalloc((void**)&d_primes, memSize);
+ 
     int k = 0;
     for (int i = 0; i < numPrimes; i++)
         for (int j = 0; j < numPrimes; j++)
@@ -68,17 +72,21 @@ int main(int argc,char** argv)
             strcpy(strToTest, firstHalf[i]);
             strcat(strToTest, secondHalf[j]);
             primeToTest = atol(strToTest);
-            primes[k++] = primeToTest;
+            h_primes[k++] = primeToTest;
         }
+    cudaMemcpy(d_primes, h_primes, memSize, cudaMemcpyHostToDevice);
 
     // Chamada do kernel
-    gpu_check_primes<<<1, k>>>(primes, k);
+    int blocks = ceil( (double)(k+1) / MAXTHREADS);
+    gpu_check_primes<<< blocks, MAXTHREADS>>>(d_primes, k);
     cudaDeviceSynchronize();
  
+    cudaMemcpy(h_primes, d_primes, memSize, cudaMemcpyDeviceToHost);
     for (int i = 0; i < k; i++)
-      numResults += primes[i];
+      numResults += h_primes[i];
  
-    cudaFree(primes);
+    free(h_primes);
+    cudaFree(d_primes);
     cudaDeviceReset();
 
     printf("%d\n", numResults);
