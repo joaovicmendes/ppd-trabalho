@@ -20,13 +20,16 @@ int numPrimes = 0;
 int isprime(long int value)
 {
     long int root;
-    long int factor=2;
+    long int factor=3;
     int prime=1;
     root = sqrtl(value);
+    if (value % 2 == 0) {
+        return value == 2;
+    } 
     while ((factor<=root) && (prime))
     {
         prime = fmod((double)value, (double) factor) > 0.0;
-        factor++;
+        factor += 2;
     }
     return prime;
 }
